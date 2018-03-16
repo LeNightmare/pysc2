@@ -10,6 +10,25 @@ from pysc2.lib import actions
 from pysc2.lib import features
 
 
+"""
+    q_table is like some kind of db table
+    looks like it accumulatively stores state of each episode, which means if restart a train episode, it would continue the process
+    
+    in step function, it generates loop of moves, which could be highly customized in future work
+    i defined several strategies which may fit 'moves' frame
+    e.g. at the beginning of each game, management and harassment could be the most important, while at the middle of a game,
+        sneak attack and the ability of produce large amount of unit will be the key the achieve victory
+    
+    further, i filtered all(maybe missed something) useful unit code and movement of t, and a rudimentary reward function,
+    which could be modified to satisfy some kind of reward value as time pass in games
+    
+    
+
+
+
+"""
+
+
 
 # no action
 _NO_OP = actions.FUNCTIONS.no_op.id
@@ -155,7 +174,7 @@ _NOT_QUEUED = [0]
 _QUEUED = [1]
 _SELECT_ALL = [2]
 
-DATA_FILE = 'sparse_agent_data'
+DATA_FILE = 'sparse_agent_data_test'
 DATA_FILE_NEW = 'my_q_learning_data'
 
 
@@ -205,7 +224,7 @@ manage = [
 
 attack = [
 
-    ACTION_ATTACK
+    # ACTION_ATTACK
 ]
 defend = [
 
@@ -258,7 +277,7 @@ generalActions = [
 
 
 
-
+## position of attack
 for mm_x in range(0, 64):
     for mm_y in range(0, 64):
         if (mm_x + 1) % 32 == 0 and (mm_y + 1) % 32 == 0:
@@ -266,74 +285,75 @@ for mm_x in range(0, 64):
 
 
 
-class QLearningAgent:
-    def __init__(self, actionSet, alpha, epsilon, gamma, num):
-        """
-        :param  actions, action list
-        :param alpha:  learning rate
-        :param epsilon: exploration rate
-        :param gamma:  discount factor
-        :param num: number of training episodes
 
-        """
-        self.actionSet = actionSet
-        self.alpha = float (alpha)
-        self.epsilon = float(epsilon)
-        self.discount = float(gamma)
-        self.numTraining = int(num)
-
-        self.dic = pd.DataFrame(columns=self.actions, dtype=np.float64)
-
-    def getQValue(self, state, action):
-        if (state, action) not in self.q:
-            self.q[(state, action)] = 0.0
-        return self.q[(state, action)]
-
-    def computeValueFromQValues(self, state):
-        actions = self.getLegalActions(state)
-        if not actions:
-            return 0.0
-        return max(map(lambda a: self.getQValue(state, a), self.getLegalActions(state)))
-
-    def computeActionFromQValues(self, state):
-
-        actions = self.getLegalActions(state)
-        if not self.getLegalActions(state):
-            return None
-
-        value = map(lambda a: self.getQValue(state, a), actions)
-        best = max(value)
-        index = [index for index in range(len(value)) if value[index] == best]
-        choice = random.choice(index)  # Pick randomly among the best
-        return actions[choice]
-
-
-    def getAction(self, state):
-        legalActions = self.getLegalActions(state)
-        if not legalActions:
-            return None
-        elif self.flipCoin(self.epsilon):
-            return random.choice(legalActions)
-        else:
-            return self.computeActionFromQValues(state)
-
-    def update(self, state, action, nextState, reward):
-        self.q[(state, action)] = (1 - self.alpha) * self.getQValue(state, action) + self.alpha * (
-                reward + self.discount * self.computeValueFromQValues(nextState))
-
-    def getPolicy(self, state):
-        return self.computeActionFromQValues(state)
-
-    def getValue(self, state):
-        return self.computeValueFromQValues(state)
-
-
-    def getLegalActions(self, state):
-        return self.actionSet
-
-    def flipCoin(self, p):
-        r = random.random()
-        return r < p
+# class QLearningAgent:
+#     def __init__(self, actionSet, alpha, epsilon, gamma, num):
+#         """
+#         :param  actions, action list
+#         :param alpha:  learning rate
+#         :param epsilon: exploration rate
+#         :param gamma:  discount factor
+#         :param num: number of training episodes
+#
+#         """
+#         self.actionSet = actionSet
+#         self.alpha = float (alpha)
+#         self.epsilon = float(epsilon)
+#         self.discount = float(gamma)
+#         self.numTraining = int(num)
+#
+#         # self.dic = pd.DataFrame(columns=self.actions, dtype=np.float64)
+#
+#     def getQValue(self, state, action):
+#         if (state, action) not in self.q:
+#             self.q[(state, action)] = 0.0
+#         return self.q[(state, action)]
+#
+#     def computeValueFromQValues(self, state):
+#         actions = self.getLegalActions(state)
+#         if not actions:
+#             return 0.0
+#         return max(map(lambda a: self.getQValue(state, a), self.getLegalActions(state)))
+#
+#     def computeActionFromQValues(self, state):
+#
+#         actions = self.getLegalActions(state)
+#         if not self.getLegalActions(state):
+#             return None
+#
+#         value = map(lambda a: self.getQValue(state, a), actions)
+#         best = max(value)
+#         index = [index for index in range(len(value)) if value[index] == best]
+#         choice = random.choice(index)  # Pick randomly among the best
+#         return actions[choice]
+#
+#
+#     def getAction(self, state):
+#         legalActions = self.getLegalActions(state)
+#         if not legalActions:
+#             return None
+#         elif self.flipCoin(self.epsilon):
+#             return random.choice(legalActions)
+#         else:
+#             return self.computeActionFromQValues(state)
+#
+#     def update(self, state, action, nextState, reward):
+#         self.q[(state, action)] = (1 - self.alpha) * self.getQValue(state, action) + self.alpha * (
+#                 reward + self.discount * self.computeValueFromQValues(nextState))
+#
+#     def getPolicy(self, state):
+#         return self.computeActionFromQValues(state)
+#
+#     def getValue(self, state):
+#         return self.computeValueFromQValues(state)
+#
+#
+#     def getLegalActions(self, state):
+#         return self.actionSet
+#
+#     def flipCoin(self, p):
+#         r = random.random()
+#         return r < p
 
 # Stolen from https://github.com/MorvanZhou/Reinforcement-learning-with-tensorflow
 class QLearningTable:
@@ -342,6 +362,7 @@ class QLearningTable:
         self.lr = learning_rate
         self.gamma = reward_decay
         self.epsilon = e_greedy
+
         self.q_table = pd.DataFrame(columns=self.actions, dtype=np.float64)
 
     def choose_action(self, observation):
@@ -362,6 +383,7 @@ class QLearningTable:
         return action
 
     def learn(self, s, a, r, s_):
+
         self.check_state_exist(s_)
         self.check_state_exist(s)
 
@@ -393,7 +415,15 @@ class SparseAgent(base_agent.BaseAgent):
         for a in generalActions:
             self.actions += a
         # self.actions = map(lambda a : list(range(len(a))) , generalActions)
+        print smart_actions
+
+        for mm_x in range(0, 64):
+            for mm_y in range(0, 64):
+                if (mm_x + 1) % 32 == 0 and (mm_y + 1) % 32 == 0:
+                    self.actions.append(ACTION_ATTACK + '_' + str(mm_x - 16) + '_' + str(mm_y - 16))
+
         print self.actions
+        print list(range(len(self.actions)))
         self.qlearn = QLearningTable(actions= list(range(len(self.actions))))
         # self.myQlearning = QLearningAgent(actions = list(range(len(smart_actions))))
 
@@ -478,19 +508,37 @@ class SparseAgent(base_agent.BaseAgent):
         factory_count = int(round(len(factory_y))/ 137)
 
 
+        scv_count = 12
+
+
+
+        # move loop
         if self.move_number == 0:
             self.move_number += 1
+            # ACTION_DO_NOTHING,
+            # ACTION_BUILD_SUPPLY_DEPOT,
+            # ACTION_BUILD_BARRACKS,
+            # ACTION_BUILD_MARINE,
+            # ['donothing', 'trainSCV', 'buildsupplydepot', 'buildrefinery', 'buildbarracks', 'buildengineerbay',
+             # 'buildmarine', 'attack_15_15', 'attack_15_47', 'attack_47_15', 'attack_47_47']
 
-            current_state = np.zeros(14)
+
+            #state of q table
+            current_state = np.zeros(11)
             current_state[0] = cc_count
-            current_state[1] = supply_depot_count
-            current_state[2] = barracks_count
-            current_state[3] = obs.observation['player'][_ARMY_SUPPLY]
-            current_state[4] = eb_count
-            current_state[5] = factory_count
-            current_state[6] = refinery_count
+            current_state[1] = scv_count
+            current_state[2] = supply_depot_count
+            current_state[3] = refinery_count
 
-            hot_squares = np.zeros(7)
+            current_state[4] = barracks_count
+            current_state[5] = eb_count
+
+            current_state[6] = obs.observation['player'][_ARMY_SUPPLY]
+            # current_state[6] = refinery_count
+
+
+            # position of attack
+            hot_squares = np.zeros(4)
             enemy_y, enemy_x = (obs.observation['minimap'][_PLAYER_RELATIVE] == _PLAYER_HOSTILE).nonzero()
             for i in range(0, len(enemy_y)):
                 y = int(math.ceil((enemy_y[i] + 1) / 32))
@@ -501,7 +549,7 @@ class SparseAgent(base_agent.BaseAgent):
             if not self.base_top_left:
                 hot_squares = hot_squares[::-1]
 
-            for i in range(0, 7):
+            for i in range(0, 4):
                 current_state[i + 7] = hot_squares[i]
 
             if self.previous_action is not None:
@@ -541,11 +589,15 @@ class SparseAgent(base_agent.BaseAgent):
                 if _SELECT_ARMY in obs.observation['available_actions']:
                     return actions.FunctionCall(_SELECT_ARMY, [_NOT_QUEUED])
 
+
+
         elif self.move_number == 1:
             self.move_number += 1
 
             smart_action, x, y = self.splitAction(self.previous_action)
+            print smart_action, 'position:', int(x), int(y)
 
+            # build position
             if smart_action == ACTION_BUILD_SUPPLY_DEPOT:
                 if supply_depot_count < 4 and _BUILD_SUPPLY_DEPOT in obs.observation['available_actions']:
                     if self.cc_y.any():
@@ -565,10 +617,10 @@ class SparseAgent(base_agent.BaseAgent):
                     if self.cc_y.any():
                         if barracks_count == 0:
                             target = self.transformDistance(round(self.cc_x.mean()), 15, round(self.cc_y.mean()), -9)
-                        elif barracks_count == 2:
+                        elif barracks_count == 1:
                             target = self.transformDistance(round(self.cc_x.mean()), 15, round(self.cc_y.mean()), 12)
-                        elif barracks_count == 3:
-                            target = self.transformDistance(round(self.cc_x.mean()), 12, round(self.cc_y.mean()), 15)
+                        elif barracks_count == 2:
+                            target = self.transformDistance(round(self.cc_x.mean()), 15, round(self.cc_y.mean()), 15)
 
                         return actions.FunctionCall(_BUILD_BARRACKS, [_NOT_QUEUED, target])
 
@@ -576,6 +628,9 @@ class SparseAgent(base_agent.BaseAgent):
                 if _TRAIN_MARINE in obs.observation['available_actions']:
                     return actions.FunctionCall(_TRAIN_MARINE, [_QUEUED])
 
+
+
+            # attack certain position of map
             elif smart_action == ACTION_ATTACK:
                 do_it = True
 
@@ -589,7 +644,6 @@ class SparseAgent(base_agent.BaseAgent):
                     x_offset = random.randint(-1, 1)
                     y_offset = random.randint(-1, 1)
 
-                    print 'position:', int(x), int(y)
                     return actions.FunctionCall(_ATTACK_MINIMAP, [_NOT_QUEUED,
                                                                   self.transformLocation(int(x) + (x_offset * 8),
                                                                                          int(y) + (y_offset * 8))])
