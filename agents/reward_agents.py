@@ -272,6 +272,7 @@ class SparseAgent(base_agent.BaseAgent):
                     x_offset = random.randint(-1, 1)
                     y_offset = random.randint(-1, 1)
 
+
                     return actions.FunctionCall(_ATTACK_MINIMAP, [_NOT_QUEUED,
                                                                   self.transformLocation(int(x) + (x_offset * 8),
                                                                                          int(y) + (y_offset * 8))])

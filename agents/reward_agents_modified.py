@@ -547,38 +547,28 @@ class SparseAgent(base_agent.BaseAgent):
             smart_action, x, y = self.splitAction(self.previous_action)
 
             if smart_action == ACTION_BUILD_SUPPLY_DEPOT:
-                if supply_depot_count < 8 and _BUILD_SUPPLY_DEPOT in obs.observation['available_actions']:
+                if supply_depot_count < 4 and _BUILD_SUPPLY_DEPOT in obs.observation['available_actions']:
                     if self.cc_y.any():
                         if supply_depot_count == 0:
-                            target = self.transformDistance(round(self.cc_x.mean()), -15, round(self.cc_y.mean()), 0)
+                            target = self.transformDistance(round(self.cc_x.mean()), -35, round(self.cc_y.mean()), 0)
                         elif supply_depot_count == 1:
-                            target = self.transformDistance(round(self.cc_x.mean()), -15, round(self.cc_y.mean()), -15)
+                            target = self.transformDistance(round(self.cc_x.mean()), -25, round(self.cc_y.mean()), -25)
                         elif supply_depot_count == 2:
-                            target = self.transformDistance(round(self.cc_x.mean()), -20, round(self.cc_y.mean()), -20)
-                        elif supply_depot_count == 3:
                             target = self.transformDistance(round(self.cc_x.mean()), -20, round(self.cc_y.mean()), -25)
-                        elif supply_depot_count == 4:
-                            target = self.transformDistance(round(self.cc_x.mean()), -25, round(self.cc_y.mean()), -20)
-                        elif supply_depot_count == 5:
-                            target = self.transformDistance(round(self.cc_x.mean()), -16, round(self.cc_y.mean()), -20)
-                        elif supply_depot_count == 6:
-                            target = self.transformDistance(round(self.cc_x.mean()), -20, round(self.cc_y.mean()), -16)
-                        elif supply_depot_count == 7:
-                            target = self.transformDistance(round(self.cc_x.mean()), 15, round(self.cc_y.mean()), 10)
+                        elif supply_depot_count == 3:
+                            target = self.transformDistance(round(self.cc_x.mean()), -15, round(self.cc_y.mean()), -25)
 
                         return actions.FunctionCall(_BUILD_SUPPLY_DEPOT, [_NOT_QUEUED, target])
 
             elif smart_action == ACTION_BUILD_BARRACKS:
-                if barracks_count < 4 and _BUILD_BARRACKS in obs.observation['available_actions']:
+                if barracks_count < 3 and _BUILD_BARRACKS in obs.observation['available_actions']:
                     if self.cc_y.any():
                         if barracks_count == 0:
                             target = self.transformDistance(round(self.cc_x.mean()), 15, round(self.cc_y.mean()), -9)
-                        elif barracks_count == 1:
-                            target = self.transformDistance(round(self.cc_x.mean()), 15, round(self.cc_y.mean()), 12)
                         elif barracks_count == 2:
-                            target = self.transformDistance(round(self.cc_x.mean()), 15, round(self.cc_y.mean()), 5)
+                            target = self.transformDistance(round(self.cc_x.mean()), 15, round(self.cc_y.mean()), 12)
                         elif barracks_count == 3:
-                            target = self.transformDistance(round(self.cc_x.mean()), 15, round(self.cc_y.mean()), 15)
+                            target = self.transformDistance(round(self.cc_x.mean()), 12, round(self.cc_y.mean()), 15)
 
                         return actions.FunctionCall(_BUILD_BARRACKS, [_NOT_QUEUED, target])
 
@@ -599,6 +589,7 @@ class SparseAgent(base_agent.BaseAgent):
                     x_offset = random.randint(-1, 1)
                     y_offset = random.randint(-1, 1)
 
+                    print 'position:', int(x), int(y)
                     return actions.FunctionCall(_ATTACK_MINIMAP, [_NOT_QUEUED,
                                                                   self.transformLocation(int(x) + (x_offset * 8),
                                                                                          int(y) + (y_offset * 8))])
